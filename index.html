@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glow Studio — Online Booking | Concept Demo</title>
+<style>
+  :root {
+    --rose: #b76e79;
+    --rose-dark: #96555f;
+    --rose-light: #e8b4b8;
+    --blush: #f9ecec;
+    --cream: #fffaf5;
+    --ink: #4a3730;
+    --muted: #8a746c;
+    --gold: #c9a24b;
+    --wa: #25d366;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(180deg, var(--blush) 0%, var(--cream) 320px);
+    color: var(--ink);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  .badge {
+    display: inline-block; background: var(--gold); color: #fff;
+    font-weight: 700; font-size: 11px; letter-spacing: 1.5px;
+    padding: 5px 14px; border-radius: 999px; margin-bottom: 14px;
+  }
+  header { text-align: center; padding: 44px 20px 10px; max-width: 760px; margin: 0 auto; }
+  header .logo {
+    font-family: Georgia, "Times New Roman", serif; font-size: 40px; color: var(--rose-dark);
+    letter-spacing: 2px;
+  }
+  header .logo span { color: var(--gold); }
+  header .tag { color: var(--muted); font-size: 15px; margin-top: 4px; }
+  header .hours { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 24px 20px 60px; }
+  .step-card {
+    background: #fff; border-radius: 18px; padding: 24px; margin-bottom: 20px;
+    box-shadow: 0 8px 30px rgba(183, 110, 121, .10); border: 1px solid #f3e2e2;
+  }
+  .step-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .step-num {
+    width: 32px; height: 32px; border-radius: 50%; background: var(--rose); color: #fff;
+    font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .step-num.done { background: var(--gold); }
+  .step-head h2 { font-family: Georgia, serif; font-size: 21px; color: var(--rose-dark); font-weight: 600; }
+  .services { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .svc {
+    border: 2px solid #f0dcdc; border-radius: 14px; padding: 14px 16px; cursor: pointer;
+    transition: border-color .15s, background .15s, transform .15s; background: #fff;
+  }
+  .svc:hover { border-color: var(--rose-light); transform: translateY(-2px); }
+  .svc.selected { border-color: var(--rose); background: var(--blush); }
+  .svc .name { font-weight: 700; font-size: 15px; }
+  .svc .meta { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .svc .price { font-weight: 800; color: var(--rose-dark); margin-top: 6px; font-size: 16px; }
+  .days { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; }
+  .day {
+    min-width: 84px; text-align: center; border: 2px solid #f0dcdc; border-radius: 12px;
+    padding: 10px 6px; cursor: pointer; background: #fff; flex-shrink: 0;
+    transition: border-color .15s, background .15s;
+  }
+  .day:hover { border-color: var(--rose-light); }
+  .day.selected { border-color: var(--rose); background: var(--blush); }
+  .day .dow { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  .day .dnum { font-size: 20px; font-weight: 800; color: var(--rose-dark); }
+  .day .dmon { font-size: 12px; color: var(--muted); }
+  .slots { display: flex; flex-wrap: wrap; gap: 10px; }
+  .slot {
+    border: 2px solid #f0dcdc; border-radius: 999px; padding: 8px 18px; cursor: pointer;
+    font-size: 14px; font-weight: 600; background: #fff; transition: all .15s;
+  }
+  .slot:hover:not(.booked) { border-color: var(--rose-light); }
+  .slot.selected { background: var(--rose); border-color: var(--rose); color: #fff; }
+  .slot.booked { opacity: .35; cursor: not-allowed; text-decoration: line-through; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px; }
+  .field input {
+    width: 100%; padding: 13px 16px; border: 2px solid #f0dcdc; border-radius: 12px;
+    font-size: 16px; color: var(--ink); background: #fff; outline: none;
+  }
+  .field input:focus { border-color: var(--rose); }
+  .confirm-btn {
+    display: block; width: 100%; background: linear-gradient(135deg, var(--rose), var(--rose-dark));
+    color: #fff; border: none; border-radius: 14px; padding: 16px; font-size: 17px; font-weight: 800;
+    cursor: pointer; letter-spacing: .5px; transition: transform .15s, opacity .15s;
+  }
+  .confirm-btn:hover:not(:disabled) { transform: translateY(-2px); }
+  .confirm-btn:disabled { opacity: .4; cursor: not-allowed; }
+  .summary {
+    background: var(--blush); border: 2px dashed var(--rose-light); border-radius: 14px;
+    padding: 18px; margin-bottom: 18px; display: none;
+  }
+  .summary.show { display: block; }
+  .summary h3 { font-family: Georgia, serif; color: var(--rose-dark); margin-bottom: 10px; }
+  .summary .row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 15px; }
+  .summary .row b { color: var(--rose-dark); }
+  .wa-btn {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    background: var(--wa); color: #fff; text-decoration: none; border-radius: 14px;
+    padding: 16px; font-size: 17px; font-weight: 800; margin-top: 12px;
+  }
+  .wa-btn:hover { filter: brightness(.95); }
+  .note { font-size: 12.5px; color: var(--muted); text-align: center; margin-top: 12px; }
+  footer {
+    text-align: center; padding: 20px; color: var(--muted); font-size: 13px;
+    max-width: 700px; margin: 0 auto;
+  }
+  footer .badge { margin-bottom: 8px; }
+  @media (max-width: 560px) {
+    .services { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+    header .logo { font-size: 32px; }
+    .step-card { padding: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge">CONCEPT DEMO — FICTIONAL SALON</div>
+  <div class="logo">Glow <span>Studio</span></div>
+  <div class="tag">Unisex Salon · DHA Phase 5, Lahore</div>
+  <div class="hours">Open daily · 10:00 AM – 8:00 PM · Walk-ins welcome</div>
+</header>
+
+<div class="wrap">
+
+  <!-- STEP 1: SERVICE -->
+  <div class="step-card">
+    <div class="step-head"><div class="step-num" id="n1">1</div><h2>Choose a service</h2></div>
+    <div class="services" id="services"></div>
+  </div>
+
+  <!-- STEP 2: DATE -->
+  <div class="step-card">
+    <div class="step-head"><div class="step-num" id="n2">2</div><h2>Pick a day</h2></div>
+    <div class="days" id="days"></div>
+  </div>
+
+  <!-- STEP 3: TIME -->
+  <div class="step-card">
+    <div class="step-head"><div class="step-num" id="n3">3</div><h2>Pick a time slot</h2></div>
+    <div class="slots" id="slots"></div>
+  </div>
+
+  <!-- STEP 4: DETAILS -->
+  <div class="step-card">
+    <div class="step-head"><div class="step-num" id="n4">4</div><h2>Your details</h2></div>
+    <div class="form-row">
+      <div class="field">
+        <label for="cname">Full name</label>
+        <input id="cname" type="text" placeholder="e.g. Ayesha Khan" autocomplete="name">
+      </div>
+      <div class="field">
+        <label for="cphone">Phone / WhatsApp</label>
+        <input id="cphone" type="tel" placeholder="e.g. 0300 1234567" autocomplete="tel">
+      </div>
+    </div>
+    <div class="summary" id="summary"></div>
+    <button class="confirm-btn" id="confirmBtn" disabled>Select a service, day &amp; time first</button>
+    <a class="wa-btn" id="waBtn" href="#" target="_blank" rel="noopener" style="display:none">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.4 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.4-.7-2.9-1.2-4.7-4.1-4.9-4.3-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .6l-.4.6-.5.5c-.2.2-.3.4-.1.7.2.3.9 1.5 2 2.4 1.4 1.2 2.5 1.6 2.9 1.8.3.2.5.1.7-.1l1-1.2c.2-.3.4-.2.7-.1l2 1c.3.1.5.2.6.4 0 .1 0 .7-.2 1.5z"/></svg>
+      Confirm on WhatsApp
+    </a>
+    <div class="note">No payment online — pay at the salon after your appointment.</div>
+  </div>
+
+</div>
+
+<footer>
+  <div class="badge">CONCEPT DEMO</div>
+  <p><b>Glow Studio is a fictional salon.</b> This page is a concept demo showing how an online booking system with WhatsApp confirmation could work for a real salon — services, prices, slots and availability shown here are simulated. No real bookings are made and no reviews are shown. In production, the WhatsApp button would open the salon's own WhatsApp number with the booking details pre-filled.</p>
+</footer>
+
+<script>
+  // ---------- data ----------
+  var SERVICES = [
+    { name: "Men's Haircut",        dur: "30 min",  price: 500,   tag: "Cut + wash + styling" },
+    { name: "Beard Trim & Shape",   dur: "20 min",  price: 300,   tag: "Hot towel finish" },
+    { name: "Women's Cut + Blowout",dur: "45 min",  price: 1500,  tag: "Wash, cut & blow-dry" },
+    { name: "Signature Facial",      dur: "60 min",  price: 2500,  tag: "Deep cleanse + glow mask" },
+    { name: "Manicure",             dur: "40 min",  price: 1200,  tag: "Shape, cuticle & polish" },
+    { name: "Pedicure",             dur: "45 min",  price: 1500,  tag: "Spa soak + massage" },
+    { name: "Hair Color (Full)",     dur: "90 min",  price: 4500,  tag: "Ammonia-free color" },
+    { name: "Head Massage (Champi)",dur: "30 min",  price: 800,   tag: "Warm oil, deep relax" },
+    { name: "Full Arms + Legs Wax", dur: "60 min",  price: 2000,  tag: "Rica wax" },
+    { name: "Bridal Package",       dur: "3 hrs",   price: 25000, tag: "Makeup + hair + draping" }
+  ];
+  var SLOT_TIMES = ["10:00 AM","11:00 AM","12:00 PM","1:00 PM","2:00 PM","3:00 PM","4:00 PM","5:00 PM","6:00 PM","7:00 PM"];
+  // Placeholder number — in production this is the salon's own WhatsApp number
+  var SALON_WHATSAPP = "923000000000";
+
+  var sel = { service: null, date: null, time: null };
+
+  // deterministic pseudo-random so "booked" slots are stable per date+service
+  function seededRand(seed) {
+    var h = 0;
+    for (var i = 0; i < seed.length; i++) { h = (h * 31 + seed.charCodeAt(i)) >>> 0; }
+    return function () { h = (h * 1103515245 + 12345) >>> 0; return h / 4294967296; };
+  }
+
+  // ---------- render services ----------
+  var svcEl = document.getElementById("services");
+  SERVICES.forEach(function (s, i) {
+    var d = document.createElement("div");
+    d.className = "svc";
+    d.innerHTML = '<div class="name">' + s.name + '</div>' +
+                  '<div class="meta">' + s.dur + ' · ' + s.tag + '</div>' +
+                  '<div class="price">Rs. ' + s.price.toLocaleString("en-PK") + '</div>';
+    d.onclick = function () {
+      sel.service = i;
+      Array.prototype.forEach.call(svcEl.children, function (c) { c.classList.remove("selected"); });
+      d.classList.add("selected");
+      document.getElementById("n1").classList.add("done");
+      renderSlots(); updateConfirm();
+    };
+    svcEl.appendChild(d);
+  });
+
+  // ---------- render next 7 days ----------
+  var daysEl = document.getElementById("days");
+  var DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  var MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  var today = new Date();
+  var dateList = [];
+  for (var k = 0; k < 7; k++) {
+    var dt = new Date(today); dt.setDate(today.getDate() + k);
+    dateList.push(dt);
+    (function (idx) {
+      var d = document.createElement("div");
+      d.className = "day";
+      d.innerHTML = '<div class="dow">' + (k === 0 ? "Today" : DOW[dt.getDay()]) + '</div>' +
+                    '<div class="dnum">' + dt.getDate() + '</div>' +
+                    '<div class="dmon">' + MON[dt.getMonth()] + '</div>';
+      d.onclick = function () {
+        sel.date = idx;
+        Array.prototype.forEach.call(daysEl.children, function (c) { c.classList.remove("selected"); });
+        d.classList.add("selected");
+        document.getElementById("n2").classList.add("done");
+        renderSlots(); updateConfirm();
+      };
+      daysEl.appendChild(d);
+    })(k);
+  }
+
+  // ---------- render slots ----------
+  var slotsEl = document.getElementById("slots");
+  function renderSlots() {
+    slotsEl.innerHTML = "";
+    if (sel.service === null || sel.date === null) {
+      slotsEl.innerHTML = '<p style="color:var(--muted);font-size:14px">Pick a service and a day to see available slots.</p>';
+      return;
+    }
+    var rand = seededRand(SERVICES[sel.service].name + "|" + dateList[sel.date].toDateString());
+    var now = new Date();
+    var isToday = sel.date === 0;
+    SLOT_TIMES.forEach(function (t) {
+      var b = document.createElement("button");
+      b.className = "slot";
+      b.textContent = t;
+      var booked = rand() < 0.28;
+      var past = false;
+      if (isToday) {
+        var hr = parseInt(t.split(":")[0], 10);
+        var ap = t.indexOf("PM") > -1;
+        var h24 = ap ? (hr === 12 ? 12 : hr + 12) : (hr === 12 ? 0 : hr);
+        past = h24 <= now.getHours();
+      }
+      if (booked || past) {
+        b.classList.add("booked");
+        b.disabled = true;
+      } else {
+        b.onclick = function () {
+          sel.time = t;
+          Array.prototype.forEach.call(slotsEl.children, function (c) { c.classList.remove("selected"); });
+          b.classList.add("selected");
+          document.getElementById("n3").classList.add("done");
+          updateConfirm();
+        };
+      }
+      slotsEl.appendChild(b);
+    });
+  }
+  renderSlots();
+
+  // ---------- confirm ----------
+  var confirmBtn = document.getElementById("confirmBtn");
+  var waBtn = document.getElementById("waBtn");
+  var summary = document.getElementById("summary");
+
+  function updateConfirm() {
+    var ready = sel.service !== null && sel.date !== null && sel.time !== null;
+    confirmBtn.disabled = !ready;
+    confirmBtn.textContent = ready ? "Review booking" : "Select a service, day & time first";
+    if (!ready) { summary.classList.remove("show"); waBtn.style.display = "none"; }
+  }
+
+  function fmtDate(dt) {
+    return DOW[dt.getDay()] + ", " + dt.getDate() + " " + MON[dt.getMonth()];
+  }
+
+  confirmBtn.onclick = function () {
+    var s = SERVICES[sel.service];
+    var dt = dateList[sel.date];
+    var name = document.getElementById("cname").value.trim();
+    var phone = document.getElementById("cphone").value.trim();
+    if (!name) { alert("Please enter your name."); document.getElementById("cname").focus(); return; }
+    if (!phone || phone.replace(/\D/g, "").length < 10) { alert("Please enter a valid phone number."); document.getElementById("cphone").focus(); return; }
+    document.getElementById("n4").classList.add("done");
+    summary.innerHTML = "<h3>Your booking</h3>" +
+      '<div class="row"><span>Service</span><b>' + s.name + '</b></div>' +
+      '<div class="row"><span>Duration</span><b>' + s.dur + '</b></div>' +
+      '<div class="row"><span>Date</span><b>' + fmtDate(dt) + '</b></div>' +
+      '<div class="row"><span>Time</span><b>' + sel.time + '</b></div>' +
+      '<div class="row"><span>Price</span><b>Rs. ' + s.price.toLocaleString("en-PK") + '</b></div>' +
+      '<div class="row"><span>Name</span><b>' + name.replace(/</g, "&lt;") + '</b></div>' +
+      '<div class="row"><span>Phone</span><b>' + phone.replace(/</g, "&lt;") + '</b></div>';
+    summary.classList.add("show");
+    var msg = "Salam Glow Studio! I would like to book:\n" +
+      "Service: " + s.name + " (Rs. " + s.price.toLocaleString("en-PK") + ")\n" +
+      "Date: " + fmtDate(dt) + "\n" +
+      "Time: " + sel.time + "\n" +
+      "Name: " + name + "\n" +
+      "Phone: " + phone;
+    waBtn.href = "https://wa.me/" + SALON_WHATSAPP + "?text=" + encodeURIComponent(msg);
+    waBtn.style.display = "flex";
+    summary.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
+  document.getElementById("cname").addEventListener("input", updateConfirm);
+  document.getElementById("cphone").addEventListener("input", updateConfirm);
+</script>
+</body>
+</html>
